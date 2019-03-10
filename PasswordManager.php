@@ -5,16 +5,14 @@
  * Password Manager Class
  * </pre>
  *
- * @author DucToanLe
+ * @author DucToanLe <ductoanle1611@gmail.com>
  */
-
 namespace Manager;
-
 
 class PasswordManager
 {
-    public $username;
-    public $password;
+    protected $username;
+    protected $password;
 
     /**
      * <pre>
@@ -42,10 +40,12 @@ class PasswordManager
      */
     protected function verifyPassword($password)
     {
-        if ($this->password == md5($password))
+        $password = md5($password);
+        if ($this->password == $password)
         {
             return true;
         }
+
         return false;
     }
 
@@ -55,29 +55,44 @@ class PasswordManager
      * Validate Password
      * </pre>
      * @param string $password password
-     * @return boolean true: if password validate success
-     *                         false: if password validate fail
+     * @return mixed true: if password validate success
+     *               arrError: if password validate fail
      */
     public function validatePassword($password)
     {
+        $arrError = array();
         //Check password must not contain any whitespace
         $regexSpace = '/\s/';
         if (true == preg_match($regexSpace, $password))
         {
-            return false;
+            $arrError[] = "ERROR_SPACE";
         }
 
-        //Check password must be at least 6 characters long.
-        if (strlen($password) != 6)
+        //Check password must be at least 6 characters long
+        if (strlen($password) < 6)
         {
-            return false;
+            $arrError[] = "ERROR_LENGTH";
         }
 
-        //Check password must contain at least one uppercase, at least one lowercase letter, at least one digit and symbol.
-        $regexCharacter = '/^.*(?=.{7,})(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).*$/';
-        if (false == preg_match($regexCharacter, $password))
+        //Check password must contain at least one uppercase, at least one lowercase letter
+        $regexUpper = '/[A-Z]/';
+        $regexLower = '/[a-z]/';
+        if (false == preg_match($regexUpper, $password) || false == preg_match($regexLower, $password))
         {
-            return false;
+            $arrError[] = "ERROR_UPPER_LOWER";
+        }
+
+        //Check password must contain at least one digit and symbol
+        $regexNumber = '/[0-9]/';
+        $regexSymbol = '/[-!$@%^&*()_+|~=`{}\[\]:";\'<>?,.\/]/';
+        if (false == preg_match($regexNumber, $password) || false == preg_match($regexSymbol, $password))
+        {
+            $arrError[] = "ERROR_DIGIT_SYMBOL";
+        }
+
+        if(count($arrError) > 0)
+        {
+            return $arrError;
         }
 
         return true;
@@ -95,7 +110,7 @@ class PasswordManager
     public function setNewPassword($password)
     {
         $isValid = $this->validatePassword($password);
-        if(false === $isValid)
+        if (true !== $isValid)
         {
             return false;
         }
@@ -107,3 +122,4 @@ class PasswordManager
         return true;
     }
 }
+
